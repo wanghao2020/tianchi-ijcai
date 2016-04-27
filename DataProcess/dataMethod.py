@@ -15,6 +15,7 @@ class data :
 
     merchant_budget = {}
     location_merchant = {}
+    location_merchant_nums = {}
 
     def __init__(self):
         print "init"
@@ -61,6 +62,26 @@ class data :
     def outputdata(self):
         print "output the result to csv"
 
+    def get_location_merchant_nums(self):
+        # process train file
+        with open(self.koubeitrain_path) as f :
+            for line in f :
+                linelist = line.split(',')
+                location = linelist[2]
+                merchant = linelist[1]
+                if self.location_merchant_nums.has_key(location):
+                    merchant_nums = self.location_merchant_nums[location]
+                    if merchant_nums.has_key(merchant):
+                        merchant_nums[merchant] = merchant_nums[merchant] + 1
+                    else:
+                        merchant_nums[merchant] = 1
+                else:
+                    merchant_nums = {}
+                    merchant_nums[merchant] = 1
+                    self.location_merchant_nums[location] = merchant_nums
+
+        for dict in self.location_merchant_nums:
+            print dict,self.location_merchant_nums[dict]
 
 
     def setdatapath(self,foldpath):

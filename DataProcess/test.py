@@ -1,7 +1,4 @@
 from dataMethod import data
 
-data_instance = data()
-
-
-data_instance.inputdata()
-
+data = data()
+data.get_location_merchant_nums()
