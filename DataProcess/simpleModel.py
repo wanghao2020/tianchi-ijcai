@@ -73,7 +73,7 @@ with open(testfile,'rb') as f :
                     if merchant[0] not in merchantResult:
                         merchantResult.append(merchant[0])
                         count = count + 1
-                        if count == 3 or len(merchantResult) >= 10 :
+                        if count == 5 or len(merchantResult) >= 10 :
                             break
                 string = ''
                 for merchant in merchantResult:
