@@ -2,19 +2,11 @@ from dataMethod import data
 import csv
 import random
 
-data = data()
-# get the location_merchant_nums
-data.get_location_merchant_nums()
-location_merchant_nums = data.location_merchant_nums
-
-# get the user_merchant_nums
-data.input_train_data()
-user_merchant_nums = data.user_merchant_nums
-
-data.inputdata()
-location_merchant = data.location_merchant
-# load the test file
-Allresult = []
-testfile = data.koubeitest_path
-
-print location_merchant['357']
+merchantfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_merchant_info'
+location_merchant_nums = 0
+with open(merchantfile, 'rb') as f:
+    for line in f:
+        merchant, budget, locationlists = line.split(',')
+        locationlist = locationlists.split(':')
+        for location in locationlist:
+            print location

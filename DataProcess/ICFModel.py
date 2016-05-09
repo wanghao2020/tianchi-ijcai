@@ -91,7 +91,9 @@ if __name__ == '__main__':
     file = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_koubei_train'
     simi =  getMerchantsSimilarityMatrix(file)
 
-    print simi[1][1],simi[1][100]
+    merchant_index = changMerchantIdtoIndex(file)
+
+    ##
 
 
 

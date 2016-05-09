@@ -75,13 +75,13 @@ class ItemCF:
 
         if not self.UserMerchantRateMatrix.has_key(user):
             # the train file does not include the user
-            if len(self.Location_merchant_nums[location]) < 4 :
+            if len(self.Location_merchant_nums[location]) < 3 :
                 for m in self.Location_merchant_nums[location]:
-                    if self.Location_merchant_nums[location][m] > 0:
-                        resultMerchant.append(m)
+                    #if self.Location_merchant_nums[location][m] > 0:
+                    resultMerchant.append(m)
                 return resultMerchant
             else:
-                sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],reverse=True)[0:4]
+                sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],reverse=True)[0:3]
                 for m in sortedMerchant:
                     resultMerchant.append(m[0])
                 return resultMerchant
@@ -92,15 +92,14 @@ class ItemCF:
                 if self.Location_merchant_nums[location].has_key(m):
                     resultMerchant.append(m)
 
-            # top 4
             if len(resultMerchant) == 0:
-                if len(self.Location_merchant_nums[location]) < 4:
+                if len(self.Location_merchant_nums[location]) < 3:
                     for m in self.Location_merchant_nums[location]:
                         if self.Location_merchant_nums[location][m] > 0:
                             resultMerchant.append(m)
                     return resultMerchant
                 else:
-                    sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],reverse=True)[0:4]
+                    sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],reverse=True)[0:3]
                     for m in sortedMerchant:
                         resultMerchant.append(m[0])
                     return resultMerchant
@@ -115,7 +114,7 @@ if __name__ == '__main__':
     testfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_koubei_test'
     merchantfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_merchant_info'
 
-    resultfile = '/home/wanghao/Document/tianchi/result/visitedresult.csv'
+    resultfile = '/home/wanghao/Document/tianchi/result/visitedresult6.csv'
     itemCf = ItemCF()
     Usermerchant = itemCf.readData(trainfile)
 

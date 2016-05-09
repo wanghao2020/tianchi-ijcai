@@ -1,8 +1,6 @@
 import math
 import csv
-
-
-# just recommend the merchant tha user visted
+# item base CF :
 class ItemCF:
 
     UserMerchantRateMatrix = {}
@@ -26,7 +24,7 @@ class ItemCF:
 
         return self.UserMerchantRateMatrix
 
-    # get the location { merchant  : people nums }
+    # get the location { merchant  : people nums  }
     def getLocation_merchant_nums(self, trainfile, merchantfile):
 
         with open(trainfile, 'rb') as f:
@@ -66,15 +64,69 @@ class ItemCF:
 
         return self.Location_merchant_nums
 
+    # compute the item similarity matrix
+    def itemSimilarity(self):
+
+        C = {}
+        N = {}
+        for user, items in self.UserMerchantRateMatrix.items():
+            for i in items.keys():
+                if not N.has_key(i):
+                    N[i] = 0
+                N[i] = N[i] + 1
+                if not C.has_key(i):
+                    C[i] = {}
+                for j in items.keys():
+                    if i == j :
+                        continue
+                    if not C[i].has_key(j):
+                        C[i][j] = 0
+                    C[i][j] = C[i][j] + 1
+
+        # compute similarity matrix
+        self.itemSimilarityMatrix = {}
+        for i,related_item  in C.items():
+            if not self.itemSimilarityMatrix.has_key(i):
+                self.itemSimilarityMatrix[i] = {}
+
+            for j,cij in related_item.items() :
+                self.itemSimilarityMatrix[i][j] = cij / math.sqrt(N[i] * N[j])
+
+        return self.itemSimilarityMatrix
+
+
+    # get the user score of the one merchant
+    def useritemScore(self,user,merchant,k=20):
+
+        user_merchant = self.UserMerchantRateMatrix[user]
+        userMerchantSet = set(user_merchant.keys())
+        score = -1
+
+        itemsimilarityMerchant = set()
+
+        if len(self.itemSimilarityMatrix[merchant]) < k:
+            for m in self.itemSimilarityMatrix[merchant]:
+                itemsimilarityMerchant.add(m)
+        else:
+            sortedsimilarityMerchant = sorted(self.itemSimilarityMatrix[merchant].iteritems(),key=lambda d:d[1],reverse=True)[0:k]
+            for m in sortedsimilarityMerchant:
+                itemsimilarityMerchant.add(m)
+
+        unionMerchant = userMerchantSet & itemsimilarityMerchant
+        for m in unionMerchant :
+            score  = score + self.UserMerchantRateMatrix[user][m] * self.itemSimilarityMatrix[m][merchant]
+
+        return score
 
     def userLocationRecommenation(self,user,location):
 
 
         resultMerchant = []
         locationMerchantList = self.Location_merchant_nums[location].keys()
+        merchantScore = {}
 
         if not self.UserMerchantRateMatrix.has_key(user):
-            # the train file does not include the user
+
             if len(self.Location_merchant_nums[location]) < 4 :
                 for m in self.Location_merchant_nums[location]:
                     if self.Location_merchant_nums[location][m] > 0:
@@ -86,14 +138,20 @@ class ItemCF:
                     resultMerchant.append(m[0])
                 return resultMerchant
         else:
+            self.trainuser = self.trainuser + 1
+            for merchant in locationMerchantList :
+                score  = self.useritemScore(user,merchant)
+                if  score > 0 :
+                    merchantScore[merchant] = score
 
-            userVisitedMerchants = self.UserMerchantRateMatrix[user].keys()
-            for m in userVisitedMerchants :
-                if self.Location_merchant_nums[location].has_key(m):
-                    resultMerchant.append(m)
+            if len(merchantScore) > 10 :
+                sortedMerchant = sorted(merchantScore.iteritems(),key=lambda d:d[1],reverse=True)[0:10]
+                for m in sortedMerchant:
+                    resultMerchant.append(m[0])
+                return resultMerchant
 
             # top 4
-            if len(resultMerchant) == 0:
+            if len(merchantScore) == 0:
                 if len(self.Location_merchant_nums[location]) < 4:
                     for m in self.Location_merchant_nums[location]:
                         if self.Location_merchant_nums[location][m] > 0:
@@ -105,8 +163,13 @@ class ItemCF:
                         resultMerchant.append(m[0])
                     return resultMerchant
 
+            for m in merchantScore:
+                resultMerchant.append(m)
+
             self.recommendationCount = self.recommendationCount + 1
-            return resultMerchant
+
+
+        return resultMerchant
 
 
 if __name__ == '__main__':
@@ -115,9 +178,10 @@ if __name__ == '__main__':
     testfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_koubei_test'
     merchantfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_merchant_info'
 
-    resultfile = '/home/wanghao/Document/tianchi/result/visitedresult.csv'
+    resultfile = '/home/wanghao/Document/tianchi/result/itemresult.csv'
     itemCf = ItemCF()
     Usermerchant = itemCf.readData(trainfile)
+    similarityMatrix = itemCf.itemSimilarity()
 
     location_merchant_nums = itemCf.getLocation_merchant_nums(trainfile, merchantfile)
 
