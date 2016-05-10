@@ -195,14 +195,19 @@ if __name__ == '__main__':
         for k in range(6):
             sample[i][j] = f.merchant_feature[merchant][k]
             j += 1
+            if key in f.label:
+                sample[i][j] = 1
         for k in range(16):
             sample[i][j] = f.user_feature[user][k]
             j += 1
+            if key in f.label:
+                sample[i][j] = 1
         for k in range(4):
             sample[i][j] = f.UM_feature[key][k]
             j += 1
-        # positive sample
-        if key in f.label:
-            sample[i][j] = 1
+            if key in f.label:
+                sample[i][j] = 1
+
+
     outfile = open('E:\IJCAI_competition\datasets\datasets\sample.pkl','wb')
     pickle.dump(sample,outfile)
