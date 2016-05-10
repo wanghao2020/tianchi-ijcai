@@ -1,9 +1,14 @@
 import pickle
 import numpy as np
 
-sample_path = 'E:\IJCAI_competition\datasets\datasets\model_train.csv'
-label_path = 'E:\IJCAI_competition\datasets\datasets\model_label.csv'
-test_path = 'E:\IJCAI_competition\datasets\datasets\model_test.csv'
+#sample_path = 'E:\IJCAI_competition\datasets\datasets\model_train.csv'
+#label_path = 'E:\IJCAI_competition\datasets\datasets\model_label.csv'
+#test_path = 'E:\IJCAI_competition\datasets\datasets\model_test.csv'
+
+sample_path = '/home/wanghao/Document/tianchi/datasets/model_train.csv'
+label_path = '/home/wanghao/Document/tianchi/datasets/model_label.csv'
+test_path = '/home/wanghao/Document/tianchi/datasets/model_test.csv'
+
 class feature:
     location_merchant_nums = {}
     location_passenger_flow = {}
@@ -87,7 +92,7 @@ class feature:
     #get user_feature {user:[x0,...,x15],...}
     def get_user_feature(self,dataset):
         print "get user feature..."
-        plk_file = open('E:\IJCAI_competition\datasets\datasets\user_feature_taobao.pkl','rb')
+        plk_file = open('/home/wanghao/Document/tianchi/datasets/user_feature_taobao.pkl','rb')
         user_feature_taobao = pickle.load(plk_file)
         user_merchant_datetime = {}
         with open(dataset) as f:
@@ -181,12 +186,14 @@ class feature:
                     self.label.append((user,merchant))
 
 if __name__ == '__main__':
+
     f = feature()
     f.get_merchant_feature(sample_path)
     f.get_user_feature(sample_path)
     f.get_user_merchant_feature(sample_path)
     f.get_label(label_path)
     sample = np.zeros((len(f.UM_feature),26+1))
+
     i = 0
     for key in f.UM_feature:
         user = key[0]
@@ -204,5 +211,5 @@ if __name__ == '__main__':
         # positive sample
         if key in f.label:
             sample[i][j] = 1
-    outfile = open('E:\IJCAI_competition\datasets\datasets\sample.pkl','wb')
+    outfile = open('/home/wanghao/Document/tianchi/datasets/sample.pkl','wb')
     pickle.dump(sample,outfile)
