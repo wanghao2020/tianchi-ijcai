@@ -159,9 +159,12 @@ class feature:
 
     #get user_feature {user:[x0,...,x43],...}
     def get_user_feature(self,dataset):
-        print "get user feature..."
+        print '*'*50
+        print "get user feature ..."
+        print "get the user feature from taobao"
         plk_file = open('E:\IJCAI_competition\datasets\datasets\user_feature_taobao_test.pkl','rb')
         user_feature_taobao = pickle.load(plk_file)
+        print "finsh the uesr feature from taobao"
         self.get_user_merchant_datetime(dataset)
         for user in self.user_merchant_datetime:
             if not self.user_feature.has_key(user):
@@ -337,7 +340,7 @@ class feature:
 
     #get label_list [(user, merchant)]
     def get_label_list(self, dataset):
-        print "get_label_list..."
+        print "get label list..."
         with open(dataset) as f:
             for line in f:
                 user,merchant,location,time = line.split(',')

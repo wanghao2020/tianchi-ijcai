@@ -2,10 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="125a7da2-22a9-4054-ad5d-e067858861ba" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/DataProcess/GetFeature.py" afterPath="$PROJECT_DIR$/DataProcess/GetFeature.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/dataProcessing.py" afterPath="$PROJECT_DIR$/dataProcessing.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/utility.py" afterPath="$PROJECT_DIR$/utility.py" />
     </list>
     <ignored path="ijcal.iws" />
     <ignored path=".idea/workspace.xml" />
@@ -45,8 +42,8 @@
       <file leaf-file-name="GetFeature.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/DataProcess/GetFeature.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="269">
-              <caret line="339" column="33" selection-start-line="339" selection-start-column="33" selection-end-line="339" selection-end-column="33" />
+            <state relative-caret-position="215">
+              <caret line="342" column="29" selection-start-line="342" selection-start-column="29" selection-end-line="342" selection-end-column="29" />
               <folding>
                 <element signature="e#0#13#0" expanded="true" />
               </folding>
@@ -195,9 +192,9 @@
         <option value="$PROJECT_DIR$/feature_extract.py" />
         <option value="$PROJECT_DIR$/DataProcess/test2.py" />
         <option value="$PROJECT_DIR$/DataProcess/taobao_user_feature.py" />
-        <option value="$PROJECT_DIR$/DataProcess/GetFeature.py" />
         <option value="$PROJECT_DIR$/utility.py" />
         <option value="$PROJECT_DIR$/dataProcessing.py" />
+        <option value="$PROJECT_DIR$/DataProcess/GetFeature.py" />
       </list>
     </option>
   </component>
@@ -1001,8 +998,8 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/DataProcess/GetFeature.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="269">
-          <caret line="339" column="33" selection-start-line="339" selection-start-column="33" selection-end-line="339" selection-end-column="33" />
+        <state relative-caret-position="215">
+          <caret line="342" column="29" selection-start-line="342" selection-start-column="29" selection-end-line="342" selection-end-column="29" />
           <folding>
             <element signature="e#0#13#0" expanded="true" />
           </folding>
