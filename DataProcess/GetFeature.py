@@ -22,10 +22,10 @@ class feature:
     user_feature = {}
     UM_feature = {}
     label_list = []
-
+    location_merchant_users ={}
 
     def get_location_merchant_nums(self,dataset):
-        location_merchant_users ={}
+
         with open(dataset) as f:
             for line in islice(f,1,None):
                 line = line.strip('\n')
@@ -42,11 +42,12 @@ class feature:
                     merchant_nums[merchant] = 1
                     self.location_merchant_nums[location] = merchant_nums
 
-                if not location_merchant_users.has_key(location):
-                    location_merchant_users[location] = {}
-                if not location_merchant_users[location].has_key(merchant):
-                    location_merchant_users[location][merchant] = []
-                location_merchant_users[location][merchant].append(user)
+                # get the {  location: {merchant ; [user1, user2,...userN]} }
+                if not self.location_merchant_users.has_key(location):
+                    self.location_merchant_users[location] = {}
+                if not self.location_merchant_users[location].has_key(merchant):
+                    self.location_merchant_users[location][merchant] = []
+                self.location_merchant_users[location][merchant].append(user)
 
                 #get user_location {user:[loc1,loc2]}
                 #get user_merchant_datetime {user:{merchant:[time1,time2...],..},...}
@@ -62,11 +63,11 @@ class feature:
                     self.user_location[user].append(location)
 
         # get the {location:{merchant:[ frequent_customer_num, all_customer_num ]}}
-        for loc in location_merchant_users:
+        for loc in self.location_merchant_users:
             self.location_merchant_regular_customer_nums[loc] = {}
-            for mer in location_merchant_users[loc]:
+            for mer in self.location_merchant_users[loc]:
                 self.location_merchant_regular_customer_nums[loc][mer] = [0, 0]
-                user_list = location_merchant_users[loc][mer]
+                user_list = self.location_merchant_users[loc][mer]
                 for usr in user_list:
                     if user_list.count(usr) > 1:
                         self.location_merchant_regular_customer_nums[loc][mer][0] += 1
@@ -86,7 +87,7 @@ class feature:
 
         location_merchant_users ={}
 
-        # get the {  location: {merchant ; [user1, user2,...userN]} }
+
         with open(dataset) as f:
             for line in islice(f,1,None):
                 user, merchant, location, time = line.split(',')
@@ -291,26 +292,26 @@ class feature:
     #get UM_feature {[user,merchant]:[x0,...,x9],...}
     def get_user_merchant_feature(self,dataset):
         print "get user_merchant feature..."
-        UM_time = {}
+        UML_time = {}
         with open(dataset) as f:
             for line in islice(f,1,None):
                 line = line.strip('\n')
                 user, merchant, location, time = line.split(',')
-                UM_pair = (user,merchant)
-                if not self.UM_feature.has_key(UM_pair):
-                    self.UM_feature[UM_pair] = [0] * 9
-                # 0. count of user visited merchant A
-                self.UM_feature[UM_pair][0] += 1
-                if not UM_time.has_key(UM_pair):
-                    UM_time[UM_pair] = []
+                UML_pair = (user,merchant,location)
+                if not self.UM_feature.has_key(UML_pair):
+                    self.UM_feature[UML_pair] = [0] * 9
+                # 0. count of user visited merchant A in location loc
+                self.UM_feature[UML_pair][0] += 1
+                if not UML_time.has_key(UML_pair):
+                    UML_time[UML_pair] = []
                 format_time = datetime.datetime.strptime(time,'%Y-%m-%d')
-                UM_time[UM_pair].append(format_time)
+                UML_time[UML_pair].append(format_time)
         for key in self.UM_feature:
-            # 1. days of user visited merchant A
-            self.UM_feature[key][1] = len(set(UM_time[key]))
+            # 1. days of user visited merchant A in location loc
+            self.UM_feature[key][1] = len(set(UML_time[key]))
             diff_days = []
-            for i in range(len(UM_time[key])-1):
-                diff_days.append((UM_time[key][i+1]-UM_time[key][i]).days)
+            for i in range(len(UML_time[key])-1):
+                diff_days.append((UML_time[key][i+1]-UML_time[key][i]).days)
             if len(diff_days) > 0:
                 # 2. max diff days
                 self.UM_feature[key][2] = max(diff_days)
@@ -323,29 +324,37 @@ class feature:
                 self.UM_feature[key][3] = -1
                 self.UM_feature[key][4] = -1
 
-            # 5. count of user visited merchant A / count of user visited all merchants
-            self.UM_feature[key][5] = float(self.UM_feature[key][0])/self.user_feature[key[0]][0]
-            mer_passenger_flow = 0
-            for loc in self.location_merchant_nums:
-                if key[1] in self.location_merchant_nums[loc]:
-                    mer_passenger_flow += self.location_merchant_nums[loc][key[1]]
-            # 6. count of user visited merchant A / passenger flow of merchant A
-            self.UM_feature[key][6] = float(self.UM_feature[key][0]) / mer_passenger_flow
+            usr_loc_mer_nums = 0
+            for mer_users in self.location_merchant_users[key[2]]:
+                for mer in mer_users:
+                    if key[0] in mer_users[mer]:
+                        usr_loc_mer_nums += 1
+            # 5. count of user visited merchant A in location loc / count of user visited all merchants in loc
+            self.UM_feature[key][5] = float(self.UM_feature[key][0]) / usr_loc_mer_nums
 
-            # 7. days of user visited merchant A / user active days offline
+            # 6. count of user visited merchant A in loc / passenger flow of merchant A in loc
+            self.UM_feature[key][6] = float(self.UM_feature[key][0]) / self.location_merchant_nums[key[2]][key[1]]
+
+            # 7. days of user visited merchant A in loc / user active days offline
             self.UM_feature[key][7] = float(self.UM_feature[key][1]) / self.user_feature[key[0]][9]
-            # 8. count of user visited merchant A / user active days offline
+            # 8. count of user visited merchant A in loc / user active days offline
             self.UM_feature[key][8] = float(self.UM_feature[key][0]) / self.user_feature[key[0]][9]
 
 
     #get label_list [(user, merchant)]
     def get_label_list(self, dataset):
-        print "get label list..."
+
+        print "get_label_list..."
+        count = 1
+
         with open(dataset) as f:
             for line in f:
+                print "count:" , count
+                count += 1
+            for line in f:
                 user,merchant,location,time = line.split(',')
-                if (user,merchant) not in self.label_list:
-                    self.label_list.append((user,merchant))
+                if (user,merchant,location) not in self.label_list:
+                    self.label_list.append((user,merchant,location))
 
 if __name__ == '__main__':
 
@@ -357,6 +366,11 @@ if __name__ == '__main__':
     sample = []
     label = []
     UML_pair = []
+    count = 1
+    with open(train_path) as f1:
+        for line in f1:
+            print "feature count:", count
+            count += 1
     with open(train_path) as f:
         for line in f:
             user,merchant,location,time = line.split(',')
@@ -367,10 +381,17 @@ if __name__ == '__main__':
                 sam.extend(f.user_feature[user])
                 sam.extend(f.UM_feature[(user,merchant)])
                 UML_pair.append(sam)
+
+                if (user,merchant,location) in f.label_list:
+                    label.append(1)
+                else:
+                    label.append(0)
+
             if (user,merchant) in f.label_list:
                 label.append(1)
             else:
                 label.append(0)
+
     print "get feature done!"
     outfile = open('/home/wanghao/Document/tianchi/feature/sample.pkl','wb')
     pickle.dump(sample,outfile)
