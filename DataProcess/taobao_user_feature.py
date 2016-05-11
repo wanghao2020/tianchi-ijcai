@@ -13,7 +13,7 @@ user_diff_time = {}
 user_feature = {}
 count = 1
 with open(taobao_path) as f:
-    for line in islice(f,1,None):
+    for line in f:
         print "count:", count
         count += 1
         line = line.strip('\r\n')
