@@ -32,7 +32,7 @@ def splitKoubeiDataBytime(starttime, endtime):
 # split the taobao file by the time
 def splitTaobaoDataBytime(starttime, endtime):
 
-    file = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_taobao'
+    file = '/home/wanghao/Document/tianchi/dataset/TaoBaoClean'
     writefile = '/home/wanghao/Document/tianchi/dataset/taobaofrom%sto%s' % (starttime, endtime)
     print "-"*50
     print "split the ijcal_taobao data set by time from %s to %s" %(starttime, endtime)
@@ -42,8 +42,8 @@ def splitTaobaoDataBytime(starttime, endtime):
     writer = csv.writer(wfile)
     with open(file, 'rb') as f:
         for line in f :
+            line = line.strip('\r\n')
             user, seller, item, category, onlineAction, timeStamp = line.split(',')
-            timeStamp = timeStamp[0 : len(timeStamp)-1]
             if timeStamp>= starttime and timeStamp<= endtime:
                 onelist = [user, seller, item, category, onlineAction, timeStamp]
                 writer.writerow(onelist)
