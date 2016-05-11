@@ -2,13 +2,14 @@ import pickle
 import numpy as np
 import datetime
 import time
-#sample_path = 'E:\IJCAI_competition\datasets\datasets\model_train.csv'
-#label_path = 'E:\IJCAI_competition\datasets\datasets\model_label.csv'
-#test_path = 'E:\IJCAI_competition\datasets\datasets\model_test.csv'
+from itertools import islice
+train_path = 'E:\IJCAI_competition\datasets\datasets\model_train.csv'
+label_path = 'E:\IJCAI_competition\datasets\datasets\model_label.csv'
+test_path = 'E:\IJCAI_competition\datasets\datasets\model_test.csv'
 
-train_path = '/home/wanghao/Document/tianchi/datasets/model_train.csv'
-label_path = '/home/wanghao/Document/tianchi/datasets/model_label.csv'
-test_path = '/home/wanghao/Document/tianchi/datasets/model_test.csv'
+#train_path = '/home/wanghao/Document/tianchi/datasets/model_train.csv'
+#label_path = '/home/wanghao/Document/tianchi/datasets/model_label.csv'
+#test_path = '/home/wanghao/Document/tianchi/datasets/model_test.csv'
 
 class feature:
     location_merchant_nums = {}
@@ -19,13 +20,16 @@ class feature:
     merchant_feature = {}
     user_feature = {}
     UM_feature = {}
-    label = []
+    label_list = []
 
-    #  get the {location : { merchant : visted nums }} from trainfile
+
     def get_location_merchant_nums(self,dataset):
+        location_merchant_users ={}
         with open(dataset) as f:
-            for line in f:
+            for line in islice(f,1,None):
+                line = line.strip('\n')
                 user,merchant,location,time = line.split(',')
+                #  get the {location : { merchant : visted nums }}
                 if self.location_merchant_nums.has_key(location):
                     merchant_nums = self.location_merchant_nums[location]
                     if merchant_nums.has_key(merchant):
@@ -36,7 +40,38 @@ class feature:
                     merchant_nums = {}
                     merchant_nums[merchant] = 1
                     self.location_merchant_nums[location] = merchant_nums
-    
+
+                if not location_merchant_users.has_key(location):
+                    location_merchant_users[location] = {}
+                if not location_merchant_users[location].has_key(merchant):
+                    location_merchant_users[location][merchant] = []
+                location_merchant_users[location][merchant].append(user)
+
+                #get user_location {user:[loc1,loc2]}
+                #get user_merchant_datetime {user:{merchant:[time1,time2...],..},...}
+                if not self.user_merchant_datetime.has_key(user):
+                    self.user_merchant_datetime[user] = {}
+                if not self.user_merchant_datetime[user].has_key(merchant):
+                    self.user_merchant_datetime[user][merchant] = []
+                format_time = datetime.datetime.strptime(time,'%Y-%m-%d')
+                self.user_merchant_datetime[user][merchant].append(format_time)
+                if not self.user_location.has_key(user):
+                    self.user_location[user] = []
+                if location not in self.user_location[user]:
+                    self.user_location[user].append(location)
+
+        # get the {location:{merchant:[ frequent_customer_num, all_customer_num ]}}
+        for loc in location_merchant_users:
+            self.location_merchant_regular_customer_nums[loc] = {}
+            for mer in location_merchant_users[loc]:
+                self.location_merchant_regular_customer_nums[loc][mer] = [0, 0]
+                user_list = location_merchant_users[loc][mer]
+                for usr in user_list:
+                    if user_list.count(usr) > 1:
+                        self.location_merchant_regular_customer_nums[loc][mer][0] += 1
+                self.location_merchant_regular_customer_nums[loc][mer][1] = len(set(user_list))
+
+
     # get the { location : passengerflow} from trainfile
     def get_location_passenger_flow(self,dataset):
         self.get_location_merchant_nums(dataset)
@@ -46,13 +81,13 @@ class feature:
                 self.location_passenger_flow[loc] = self.location_passenger_flow[loc] + self.location_merchant_nums[loc][mer]
     
     #
-    def get_location_merchant_user_nums(self,dataset):
+    def get_location_merchant_users(self,dataset):
 
         location_merchant_users ={}
 
         # get the {  location: {merchant ; [user1, user2,...userN]} }
         with open(dataset) as f:
-            for line in f:
+            for line in islice(f,1,None):
                 user, merchant, location, time = line.split(',')
                 if not location_merchant_users.has_key(location):
                     location_merchant_users[location] = {}
@@ -75,9 +110,9 @@ class feature:
     def get_location_merchant_feature(self,dataset):
         print "get location_merchant feature..."
         self.get_location_passenger_flow(dataset)
-        self.get_location_merchant_user_nums(dataset)
+        #self.get_location_merchant_nums(dataset)
         with open(dataset) as f:
-            for line in f:
+            for line in islice(f,1,None):
                 user,mer,loc,time = line.split(',')
                 if not self.merchant_feature.has_key((loc,mer)):
 
@@ -107,7 +142,8 @@ class feature:
     #get user_merchant_datetime {user:{merchant:[time1,time2...],..},...}
     def get_user_merchant_datetime(self,dataset):
         with open(dataset) as f:
-            for line in f:
+            for line in islice(f,1,None):
+                line = line.strip('\n')
                 user, merchant, location, time = line.split(',')
                 if not self.user_merchant_datetime.has_key(user):
                     self.user_merchant_datetime[user] = {}
@@ -123,7 +159,7 @@ class feature:
     #get user_feature {user:[x0,...,x43],...}
     def get_user_feature(self,dataset):
         print "get user feature..."
-        plk_file = open('/home/wanghao/Document/tianchi/datasets/user_feature_taobao.pkl','rb')
+        plk_file = open('E:\IJCAI_competition\datasets\datasets\user_feature_taobao_test.pkl','rb')
         user_feature_taobao = pickle.load(plk_file)
         self.get_user_merchant_datetime(dataset)
         for user in self.user_merchant_datetime:
@@ -212,7 +248,7 @@ class feature:
                 # 25. number of user buy different category / active days online
                 self.user_feature[user][25] = float(self.user_feature[user][5]) / self.user_feature[user][8]
                 # 26. number of user click different item / active days online
-                self.user_feature[user][26] = flaot(self.user_feature[user][2]) / self.user_feature[user][8]
+                self.user_feature[user][26] = float(self.user_feature[user][2]) / self.user_feature[user][8]
                 # 27. number of user buy different item / active days online
                 self.user_feature[user][27] = float(self.user_feature[user][3]) / self.user_feature[user][8]
                 # 28. number of user click different seller / active days online
@@ -236,24 +272,25 @@ class feature:
 
 
                 # 37. number of user click different category / total click num
-                self.user_feature[user][37] = float(self.user_feature[user][4]) / user_feature_taobao[user][16]
+                self.user_feature[user][37] = float(self.user_feature[user][4] + 1) / (user_feature_taobao[user][16] + 1)
                 # 38. number of user buy different category / total buy num
-                self.user_feature[user][38] = float(self.user_feature[user][5]) / user_feature_taobao[user][17]
+                self.user_feature[user][38] = float(self.user_feature[user][5] + 1) / (user_feature_taobao[user][17] + 1)
                 # 39. number of user click different item / total click num
-                self.user_feature[user][39] = float(self.user_feature[user][2]) / user_feature_taobao[user][16]
+                self.user_feature[user][39] = float(self.user_feature[user][2] + 1) / (user_feature_taobao[user][16] + 1)
                 # 40. number of user buy different item / total buy num
-                self.user_feature[user][40] = float(self.user_feature[user][3]) / user_feature_taobao[user][17]
+                self.user_feature[user][40] = float(self.user_feature[user][3] + 1) / (user_feature_taobao[user][17] + 1)
                 # 41. number of user click different seller / total click num
-                self.user_feature[user][41] = float(self.user_feature[user][6]) / user_feature_taobao[user][16]
+                self.user_feature[user][41] = float(self.user_feature[user][6] + 1) / (user_feature_taobao[user][16] + 1)
                 # 42. number of user buy different seller / total buy num
-                self.user_feature[user][42] = float(self.user_feature[user][7]) / user_feature_taobao[user][17]
+                self.user_feature[user][42] = float(self.user_feature[user][7] + 1) / (user_feature_taobao[user][17] + 1)
 
     #get UM_feature {[user,merchant]:[x0,...,x9],...}
     def get_user_merchant_feature(self,dataset):
         print "get user_merchant feature..."
         UM_time = {}
         with open(dataset) as f:
-            for line in f:
+            for line in islice(f,1,None):
+                line = line.strip('\n')
                 user, merchant, location, time = line.split(',')
                 UM_pair = (user,merchant)
                 if not self.UM_feature.has_key(UM_pair):
@@ -287,7 +324,7 @@ class feature:
             mer_passenger_flow = 0
             for loc in self.location_merchant_nums:
                 if key[1] in self.location_merchant_nums[loc]:
-                    mer_passenger_flow += len(self.location_merchant_nums[loc][key[1]])
+                    mer_passenger_flow += self.location_merchant_nums[loc][key[1]]
             # 6. count of user visited merchant A / passenger flow of merchant A
             self.UM_feature[key][6] = float(self.UM_feature[key][0]) / mer_passenger_flow
 
@@ -297,13 +334,14 @@ class feature:
             self.UM_feature[key][8] = float(self.UM_feature[key][0]) / self.user_feature[key[0]][9]
 
 
-    #get label [user,merchant]
-    def get_label(self,dataset):
+    #get label_list [user,merchant]
+    def get_label_list(self,dataset):
+        print "get_label_list..."
         with open(dataset) as f:
-            for line in f:
+            for line in islice(f,1,None):
                 user,merchant,location,time = line.split(',')
-                if (user,merchant) not in self.label:
-                    self.label.append((user,merchant))
+                if (user,merchant) not in self.label_list:
+                    self.label_list.append((user,merchant))
 
 if __name__ == '__main__':
 
@@ -311,8 +349,9 @@ if __name__ == '__main__':
     f.get_location_merchant_feature(train_path)
     f.get_user_feature(train_path)
     f.get_user_merchant_feature(train_path)
-    f.get_label(label_path)
+    f.get_label_list(label_path)
     sample = []
+    label = []
     UML_pair = []
     with open(train_path) as f:
         for line in f:
@@ -324,6 +363,12 @@ if __name__ == '__main__':
                 sam.extend(f.user_feature[user])
                 sam.extend(f.UM_feature[(user,merchant)])
             UML_pair.append(sam)
-
-    outfile = open('/home/wanghao/Document/tianchi/datasets/sample.pkl','wb')
+            if (user,merchant) in f.label_list:
+                label.append(1)
+            else:
+                label.append(0)
+    print "get feature done!"
+    outfile = open('E:\IJCAI_competition\datasets\datasets\sample.pkl','wb')
     pickle.dump(sample,outfile)
+    outfile2 = open('E:\IJCAI_competition\datasets\datasets\label.pkl','wb')
+    pickle.dump(label,outfile2)

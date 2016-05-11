@@ -2,7 +2,7 @@ import pickle
 import datetime
 import time
 from itertools import islice
-taobao_path = 'E:\IJCAI_competition\datasets\datasets\Taobao_test.csv'
+taobao_path = 'E:\IJCAI_competition\datasets\datasets\ijcai2016_taobao'
 
 user_item = {}
 user_category ={}
@@ -13,7 +13,7 @@ user_diff_time = {}
 user_feature = {}
 count = 1
 with open(taobao_path) as f:
-    for line in islice(f,1,None):
+    for line in f:
         print "count:", count
         count += 1
         line = line.strip('\n')
@@ -49,7 +49,7 @@ with open(taobao_path) as f:
             user_action_nums[user][1] += 1
         if not user_time.has_key(user):
             user_time[user] = []
-        format_time = datetime.datetime.strptime(time,'%Y-%m-%d')
+        format_time = datetime.datetime.strptime(time,'%Y%m%d')
         user_time[user].append(format_time)
         user_time[user].sort()
 
@@ -117,7 +117,7 @@ for user in user_feature:
     # 17. total buy nums
     user_feature[user][17] = user_action_nums[user][1]
 
-outfile = 'E:\IJCAI_competition\datasets\datasets\user_feature_taobao_test.pkl'
+outfile = 'E:\IJCAI_competition\datasets\datasets\user_feature_taobao_all.pkl'
 output = open(outfile,'wb')
 pickle.dump(user_feature,output)
 
