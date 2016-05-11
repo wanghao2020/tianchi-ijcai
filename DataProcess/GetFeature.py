@@ -5,18 +5,20 @@ import numpy as np
 #label_path = 'E:\IJCAI_competition\datasets\datasets\model_label.csv'
 #test_path = 'E:\IJCAI_competition\datasets\datasets\model_test.csv'
 
-sample_path = '/home/wanghao/Document/tianchi/datasets/model_train.csv'
+train_path = '/home/wanghao/Document/tianchi/datasets/model_train.csv'
 label_path = '/home/wanghao/Document/tianchi/datasets/model_label.csv'
 test_path = '/home/wanghao/Document/tianchi/datasets/model_test.csv'
 
 class feature:
     location_merchant_nums = {}
     location_passenger_flow = {}
-    location_merchant_regular_costomer_nums = {}
+    location_merchant_regular_customer_nums = {}
     merchant_feature = {}
     user_feature = {}
     UM_feature = {}
     label = []
+
+    #  get the {location : { merchant : visted nums }} from trainfile
     def get_location_merchant_nums(self,dataset):
         with open(dataset) as f:
             for line in f:
@@ -34,6 +36,7 @@ class feature:
                     merchant_nums[merchant] = 1
                     self.location_merchant_nums[location] = merchant_nums
     
+    # get the { location : passengerflow} from trainfile
     def get_location_passenger_flow(self,dataset):
         self.get_location_merchant_nums(dataset)
         for loc in self.location_merchant_nums:
@@ -41,10 +44,13 @@ class feature:
             for mer in self.location_merchant_nums[loc]:
                 self.location_passenger_flow[loc] = self.location_passenger_flow[loc] + self.location_merchant_nums[loc][mer]
     
+    #
     def get_location_merchant_user_nums(self,dataset):
+
         location_merchant_users ={}
+
+        # get the {  location: {merchant ; [user1, user2,...userN]} }
         with open(dataset) as f:
-            # get the {  location: {merchant ; [user1, user2,...userN]} }
             for line in f:
                 user, merchant, location, time = line.split(',')
                 if not location_merchant_users.has_key(location):
@@ -52,41 +58,51 @@ class feature:
                 if not location_merchant_users[location].has_key(merchant):
                     location_merchant_users[location][merchant] = []
                 location_merchant_users[location][merchant].append(user)
-        # get the {location:{merchant:[regular_customer_num,all_customer_num]}}
+
+        # get the {location:{merchant:[ frequent_customer_num, all_customer_num ]}}
         for loc in location_merchant_users:
-            self.location_merchant_regular_costomer_nums[loc] = {}
+            self.location_merchant_regular_customer_nums[loc] = {}
             for mer in location_merchant_users[loc]:
-                self.location_merchant_regular_costomer_nums[loc][mer] = [0,0]
+                self.location_merchant_regular_customer_nums[loc][mer] = [0, 0]
                 user_list = location_merchant_users[loc][mer]
                 for usr in user_list:
                     if user_list.count(usr) > 1:
-                        self.location_merchant_regular_costomer_nums[loc][mer][0] += 1
-                self.location_merchant_regular_costomer_nums[loc][mer][1] = len(set(user_list))
+                        self.location_merchant_regular_customer_nums[loc][mer][0] += 1
+                self.location_merchant_regular_customer_nums[loc][mer][1] = len(set(user_list))
 
     #get merchant_feature {merchant:[x0,..,x5],...}
-    def get_merchant_feature(self,dataset):
-        print "get merchant feature..."
+    def get_location_merchant_feature(self,dataset):
+        print "get location_merchant feature..."
         self.get_location_passenger_flow(dataset)
         self.get_location_merchant_user_nums(dataset)
         with open(dataset) as f:
             for line in f:
                 user,mer,loc,time = line.split(',')
-                if self.merchant_feature.has_key(mer):
-                    # merchant mer's passenger flow
-                    self.merchant_feature[mer][0] += 1
-                     # the sum of passenger flow of all merchants in loc which merchant mer located
-                    self.merchant_feature[mer][1] = self.location_passenger_flow[loc]
-                    if self.location_merchant_nums.has_key(loc):
-                        # count of merchants in which mer located
-                        self.merchant_feature[mer][2] = len(self.location_merchant_nums[loc])
-                        # the rate of regular customer
-                        self.merchant_feature[mer][5] = self.location_merchant_regular_costomer_nums[loc][mer][0]/self.location_merchant_regular_costomer_nums[loc][mer][1]
-                    # passenger flow of mer / the sum of passenger flow local
-                    self.merchant_feature[mer][3] = self.merchant_feature[mer][0]/self.merchant_feature[mer][1]
-                    # average passenger flow local
-                    self.merchant_feature[mer][4] = self.merchant_feature[mer][1]/self.merchant_feature[mer][2]
-                else:
-                    self.merchant_feature[mer] = [1,0,0,0,0,0]
+                if not self.merchant_feature.has_key((loc,mer)):
+
+                    self.merchant_feature[(loc,mer)] = [0] * 7
+
+                # 0. merchant all mer's passenger flow
+                self.merchant_feature[(loc,mer)][0] = self.merchant_feature[(loc,mer)][0] + 1
+
+                # 1. merchant location passenger flow
+                self.merchant_feature[(loc,mer)][1] = self.location_merchant_nums[loc][mer]
+
+                # 2. the sum of passenger flow of all merchants in loc which merchant mer located
+                self.merchant_feature[(loc,mer)][2] = self.location_passenger_flow[loc]
+
+                if self.location_merchant_nums.has_key(loc):
+                    # 3. count of merchants in which mer located
+                    self.merchant_feature[(loc,mer)][3] = len(self.location_merchant_nums[loc])
+                    # 6. the rate of regular customer
+                    self.merchant_feature[(loc,mer)][6] = self.location_merchant_regular_customer_nums[loc][mer][0] / self.location_merchant_regular_customer_nums[loc][mer][1]
+
+                # 4. passenger flow of mer / the sum of passenger flow local
+                self.merchant_feature[(loc,mer)][4] = self.merchant_feature[(loc,mer)][1]/self.merchant_feature[(loc,mer)][2]
+                # 4. average passenger flow local
+                self.merchant_feature[(loc,mer)][5] = self.merchant_feature[(loc,mer)][2]/self.merchant_feature[(loc,mer)][3]
+
+
 
 
     #get user_feature {user:[x0,...,x15],...}
@@ -188,9 +204,9 @@ class feature:
 if __name__ == '__main__':
 
     f = feature()
-    f.get_merchant_feature(sample_path)
-    f.get_user_feature(sample_path)
-    f.get_user_merchant_feature(sample_path)
+    f.get_merchant_feature(train_path)
+    f.get_user_feature(train_path)
+    f.get_user_merchant_feature(train_path)
     f.get_label(label_path)
     sample = np.zeros((len(f.UM_feature),26+1))
 
@@ -212,16 +228,15 @@ if __name__ == '__main__':
         for k in range(4):
             sample[i][j] = f.UM_feature[key][k]
             j += 1
-<<<<<<< HEAD
+
         # positive sample
         if key in f.label:
             sample[i][j] = 1
     outfile = open('/home/wanghao/Document/tianchi/datasets/sample.pkl','wb')
-=======
-            if key in f.label:
-                sample[i][j] = 1
 
+        #if key in f.label:
+        #   sample[i][j] = 1
 
-    outfile = open('E:\IJCAI_competition\datasets\datasets\sample.pkl','wb')
->>>>>>> 498225f723a6832684915cf5f95156c506e03359
+    #outfile = open('E:\IJCAI_competition\datasets\datasets\sample.pkl','wb')
+
     pickle.dump(sample,outfile)

@@ -1,26 +1,43 @@
 import pickle
+import csv
 import numpy as np
 
-file = '/home/wanghao/Document/tianchi/feature/sample.pkl'
-f = open(file,'rb')
-ary = pickle.load(f)
-m,n = ary.shape
 
-allnum = 0
-positivenum = 0
-negativenum = 0
+# solit the tianchi_merchant_train file by the time
+def splitDataSetBytime(starttime, endtime):
+    file = "/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_train"
+    splitdata = []
+    with open(file,'rb') as f :
+        for line in f :
+            linedata = line.split(',')
+            user = linedata[0]
+            merchant = linedata[1]
+            location = linedata[2]
+            time = linedata[3]
+            time = time[0:len(time)-1]
+            if time >= starttime and time <= endtime :
+                onelist = [user,merchant,location,time]
+                splitdata.append(onelist)
 
-for index in range(0,m):
-    allnum += 1
-    print ary[index]
-    if ary[index][-1] == 1.0:
-        positivenum += 1
-    else:
-        negativenum += 1
+    writefile = '/home/wanghao/Document/tianchi/dataset/trainfrom%sto%s'%(starttime, endtime)
+    with open(writefile, 'wb') as f :
+        writer = csv.writer(f)
+        writer.writerows(splitdata)
 
-print "the ++++ nums ", positivenum
-print "the ---- nums ", negativenum
-print "all nums ", allnum
+
+
+if __name__ == "__main__":
+
+    splitDataSetBytime('20150701', '20151031')
+
+
+
+
+
+
+
+
+
 
 
 
