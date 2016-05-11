@@ -2,7 +2,7 @@ import pickle
 import datetime
 import time
 from itertools import islice
-taobao_path = 'E:\IJCAI_competition\datasets\datasets\Taobao_test.csv'
+taobao_path = '/home/wanghao/Document/tianchi/dataset/taobaofrom20150701to20150930'
 
 user_item = {}
 user_category ={}
@@ -16,10 +16,10 @@ with open(taobao_path) as f:
     for line in islice(f,1,None):
         print "count:", count
         count += 1
-        line = line.strip('\n')
+        line = line.strip('\r\n')
         user,seller,item,category,action,time = line.split(',')
-        #print type(time)
-       # print "time:" , time
+        # print type(time)
+        # print "time:" , time
         if not user_feature.has_key(user):
             user_feature[user] = [0] * 18
         if not user_item.has_key(user):
@@ -49,12 +49,14 @@ with open(taobao_path) as f:
             user_action_nums[user][1] += 1
         if not user_time.has_key(user):
             user_time[user] = []
-        format_time = datetime.datetime.strptime(time,'%Y-%m-%d')
+        format_time = datetime.datetime.strptime(time,'%Y%m%d')
         user_time[user].append(format_time)
         user_time[user].sort()
 
 #get {user:[,,,,]}
 for user in user_feature:
+
+    ## get user_item feature
     for item in user_item[user]:
         if user_item[user][item][0] > 0:
             # 0. num of different item with click action
@@ -68,6 +70,8 @@ for user in user_feature:
             if user_item[user][item][1] > 1:
                 # 11. num of repeat buy different item
                 user_feature[user][11] += 1
+
+    ## get user_category feature
     for category in user_category[user]:
         if user_category[user][category][0] > 0:
             # 2. num of different category with click action
@@ -81,6 +85,8 @@ for user in user_feature:
             if user_category[user][category][1] > 1:
                 # 13. num of repeat buy different category
                 user_feature[user][13] += 1
+
+    ## get user_seller feature
     for seller in user_seller[user]:
         if user_seller[user][seller][0] > 0:
             # 4. num of different seller with click action
@@ -94,6 +100,8 @@ for user in user_feature:
             if user_seller[user][seller][1] > 1:
                 # 15. num of repeat buy different seller
                 user_feature[user][15] += 1
+
+    ## get the user_time feature
     timelist = user_time[user]
     # 6. active days online
     user_feature[user][6] = len(set(timelist))
@@ -112,12 +120,14 @@ for user in user_feature:
         user_feature[user][7] = -1
         user_feature[user][8] = -1
         user_feature[user][9] = -1
+
     # 16. total click nums
     user_feature[user][16] = user_action_nums[user][0]
+
     # 17. total buy nums
     user_feature[user][17] = user_action_nums[user][1]
 
-outfile = 'E:\IJCAI_competition\datasets\datasets\user_feature_taobao_test.pkl'
+outfile = '/home/wanghao/Document/tianchi/feature/user_feature_taobao_test.pkl'
 output = open(outfile,'wb')
 pickle.dump(user_feature,output)
 
