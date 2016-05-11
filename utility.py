@@ -3,10 +3,16 @@ import csv
 import numpy as np
 
 
-# solit the tianchi_merchant_train file by the time
-def splitDataSetBytime(starttime, endtime):
+# split the tianchi_merchant_train file by the time
+def splitKoubeiDataBytime(starttime, endtime):
+
     file = "/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_train"
-    splitdata = []
+    writefile = '/home/wanghao/Document/tianchi/dataset/trainfrom%sto%s' % (starttime, endtime)
+    print "-" * 50
+    print "split the ijcal_koubei data set by time from %s to %s" % (starttime, endtime)
+
+    wfile = open(writefile, 'wb')
+    writer = csv.writer(wfile)
     with open(file,'rb') as f :
         for line in f :
             linedata = line.split(',')
@@ -17,18 +23,46 @@ def splitDataSetBytime(starttime, endtime):
             time = time[0:len(time)-1]
             if time >= starttime and time <= endtime :
                 onelist = [user,merchant,location,time]
-                splitdata.append(onelist)
+                writer.writerow(onelist)
 
-    writefile = '/home/wanghao/Document/tianchi/dataset/trainfrom%sto%s'%(starttime, endtime)
-    with open(writefile, 'wb') as f :
-        writer = csv.writer(f)
-        writer.writerows(splitdata)
+    wfile.close()
+    print "finsh the split data set by time from %s to %s" % (starttime, endtime)
+    print "*" * 50
 
+# split the taobao file by the time
+def splitTaobaoDataBytime(starttime, endtime):
 
+    file = '/home/wanghao/Document/tianchi/dataset/TaoBaoClean'
+    writefile = '/home/wanghao/Document/tianchi/dataset/taobaofrom%sto%s' % (starttime, endtime)
+    print "-"*50
+    print "split the ijcal_taobao data set by time from %s to %s" %(starttime, endtime)
+
+    count = 0
+    wfile = open(writefile, 'wb')
+    writer = csv.writer(wfile)
+    with open(file, 'rb') as f:
+        for line in f :
+            line = line.strip('\r\n')
+            user, seller, item, category, onlineAction, timeStamp = line.split(',')
+            if timeStamp>= starttime and timeStamp<= endtime:
+                onelist = [user, seller, item, category, onlineAction, timeStamp]
+                writer.writerow(onelist)
+            count += 1
+            print count
+
+    wfile.close()
+
+    print "finsh the split data set by time from %s to %s" % (starttime, endtime)
+    print "*"*50
 
 if __name__ == "__main__":
 
-    splitDataSetBytime('20150701', '20151031')
+    #splitTaobaoDataBytime('20150701', '20150930')
+    #splitTaobaoDataBytime('20150701', '20151031')
+    #splitKoubeiDataBytime('20151001', '20151031')
+    #splitKoubeiDataBytime('20151101', '20151130')
+    pass
+
 
 
 

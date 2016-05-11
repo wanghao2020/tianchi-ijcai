@@ -12,6 +12,7 @@ test_path = 'E:\IJCAI_competition\datasets\datasets\model_test.csv'
 #test_path = '/home/wanghao/Document/tianchi/datasets/model_test.csv'
 
 class feature:
+
     location_merchant_nums = {}
     location_passenger_flow = {}
     location_merchant_regular_customer_nums = {}
@@ -337,14 +338,15 @@ class feature:
             self.UM_feature[key][8] = float(self.UM_feature[key][0]) / self.user_feature[key[0]][9]
 
 
-    #get label_list [user,merchant]
-    def get_label_list(self,dataset):
+    #get label_list [(user, merchant)]
+    def get_label_list(self, dataset):
         print "get_label_list..."
         count = 1
         with open(dataset) as f:
-            for line in islice(f,1,None):
+            for line in f:
                 print "count:" , count
                 count += 1
+            for line in f:
                 user,merchant,location,time = line.split(',')
                 if (user,merchant,location) not in self.label_list:
                     self.label_list.append((user,merchant,location))
@@ -364,6 +366,8 @@ if __name__ == '__main__':
         for line in f1:
             print "feature count:", count
             count += 1
+    with open(train_path) as f:
+        for line in f:
             user,merchant,location,time = line.split(',')
             if (user,merchant,location) not in UML_pair:
                 UML_pair.append((user,merchant,location))
@@ -372,12 +376,19 @@ if __name__ == '__main__':
                 sam.extend(f.user_feature[user])
                 sam.extend(f.UM_feature[(user,merchant)])
                 UML_pair.append(sam)
+
                 if (user,merchant,location) in f.label_list:
                     label.append(1)
                 else:
                     label.append(0)
+
+            if (user,merchant) in f.label_list:
+                label.append(1)
+            else:
+                label.append(0)
+
     print "get feature done!"
-    outfile = open('E:\IJCAI_competition\datasets\datasets\sample.pkl','wb')
+    outfile = open('/home/wanghao/Document/tianchi/feature/sample.pkl','wb')
     pickle.dump(sample,outfile)
-    outfile2 = open('E:\IJCAI_competition\datasets\datasets\label.pkl','wb')
+    outfile2 = open('/home/wanghao/Document/tianchi/featurelabel.pkl','wb')
     pickle.dump(label,outfile2)
