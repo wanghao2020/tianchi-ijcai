@@ -30,9 +30,4 @@ class featureExtract():
 
 if __name__ == '__main__':
 
-
-    file = '/home/wanghao/Document/tianchi/dataset/trainfrom20151101to20151130'
-    f  = featureExtract()
-    f.getMonthUserMerchantTuper(file, '11')
-    for tuple in f.month_usermerchanttuple['11']:
-        print tuple
+    pass
