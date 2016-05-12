@@ -9,6 +9,8 @@ class ItemCF:
     itemSimilarityMatrix = {}
     Location_merchant_users = {}
     Location_merchant_nums = {}
+    user_location_merchant = {}
+
     trainuser = 0
     recommendationCount = 0
 
@@ -66,6 +68,22 @@ class ItemCF:
 
         return self.Location_merchant_nums
 
+    # user : {location : [merchant1 , merchant2 ...]}
+    def get_userlocationmerchant(self, trainfile):
+
+        with open(trainfile, 'rb') as  f:
+            for line in f :
+                line = line.strip('\r\n')
+                user, merchant, location, time = line.split(',')
+                if not self.user_location_merchant.has_key(user):
+                    self.user_location_merchant[user] =  {}
+                if not self.user_location_merchant[user].has_key(location):
+                    self.user_location_merchant[user][location] = []
+                if merchant not in self.user_location_merchant[user][location]:
+                    self.user_location_merchant[user][location].append(merchant)
+
+        return self.user_location_merchant
+
 
     def userLocationRecommenation(self,user,location):
 
@@ -87,39 +105,36 @@ class ItemCF:
                 return resultMerchant
         else:
 
-            userVisitedMerchants = self.UserMerchantRateMatrix[user].keys()
-            for m in userVisitedMerchants :
-                if self.Location_merchant_nums[location].has_key(m):
+            if self.user_location_merchant[user].has_key(location):
+                for m in self.user_location_merchant[user][location]:
                     resultMerchant.append(m)
-
-            if len(resultMerchant) == 0:
+                return resultMerchant
+            else:
                 if len(self.Location_merchant_nums[location]) < 3:
                     for m in self.Location_merchant_nums[location]:
-                        if self.Location_merchant_nums[location][m] > 0:
-                            resultMerchant.append(m)
+                        # if self.Location_merchant_nums[location][m] > 0:
+                        resultMerchant.append(m)
                     return resultMerchant
                 else:
-                    sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],reverse=True)[0:3]
+                    sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],
+                                            reverse=True)[0:3]
                     for m in sortedMerchant:
                         resultMerchant.append(m[0])
                     return resultMerchant
 
-            self.recommendationCount = self.recommendationCount + 1
-            return resultMerchant
-
 
 if __name__ == '__main__':
 
-    trainfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_koubei_train'
-    testfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_koubei_test'
-    merchantfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_merchant_info'
+    trainfile = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_train'
+    testfile = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_test'
+    merchantfile = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_merchant_info'
 
-    resultfile = '/home/wanghao/Document/tianchi/result/visitedresult6.csv'
+    resultfile = '/home/wanghao/Document/tianchi/result/newvisitedresult.csv'
     itemCf = ItemCF()
     Usermerchant = itemCf.readData(trainfile)
 
     location_merchant_nums = itemCf.getLocation_merchant_nums(trainfile, merchantfile)
-
+    user_location_merchants = itemCf.get_userlocationmerchant(trainfile)
     allResult = []
     count = 0
     with open(testfile, 'rb') as f :
