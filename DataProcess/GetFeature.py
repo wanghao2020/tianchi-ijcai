@@ -323,7 +323,7 @@ class feature:
 
             usr_loc_mer_nums = 0
             for mer_users in self.location_merchant_users[key[2]]:
-                for mer in mer_users:
+                for mer in mer_users.keys():
                     if key[0] in mer_users[mer]:
                         usr_loc_mer_nums += 1
             # 5. count of user visited merchant A in location loc / count of user visited all merchants in loc
@@ -343,9 +343,6 @@ class feature:
         print "get_label_list..."
         count = 1
         with open(dataset) as f:
-            for line in f:
-                print "count:" , count
-                count += 1
             for line in f:
                 user,merchant,location,time = line.split(',')
                 if (user,merchant,location) not in self.label_list:
@@ -374,19 +371,13 @@ if __name__ == '__main__':
                 sam = []
                 sam.extend(f.merchant_feature[(location,merchant)])
                 sam.extend(f.user_feature[user])
-                sam.extend(f.UM_feature[(user,merchant)])
-                UML_pair.append(sam)
+                sam.extend(f.UM_feature[(user,merchant,location)])
+                sample.append(sam)
 
                 if (user,merchant,location) in f.label_list:
                     label.append(1)
                 else:
                     label.append(0)
-
-            if (user,merchant) in f.label_list:
-                label.append(1)
-            else:
-                label.append(0)
-
     print "get feature done!"
     outfile = open('/home/wanghao/Document/tianchi/feature/sample.pkl','wb')
     pickle.dump(sample,outfile)
