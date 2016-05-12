@@ -208,8 +208,7 @@ class feature:
             # 23. the number of user visited different merchants/count of all merchants local
             self.user_feature[user][23] = float(self.user_feature[user][1]) / mer_loc_nums
 
-            # 36. num of repeat visited merc
-            # hants / num of all visited merchants
+            # 36. num of repeat visited merchants / num of all visited merchants
             self.user_feature[user][36] = float(repeat_mer_nums) / self.user_feature[user][1]
 
             if user_feature_taobao.has_key(user):
