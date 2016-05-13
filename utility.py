@@ -61,8 +61,9 @@ if __name__ == "__main__":
     #splitTaobaoDataBytime('20150701', '20151031')
     #splitKoubeiDataBytime('20151001', '20151031')
     #splitKoubeiDataBytime('20151101', '20151130')
-    pass
-
+    splitKoubeiDataBytime('20150701', '20150731')
+    splitKoubeiDataBytime('20150801', '20150831')
+    splitKoubeiDataBytime('20150901', '20150931')
 
 
 

@@ -22,12 +22,12 @@ scalaX = preprocessing.scale(X)
 
 # model
 print "train by RF  model"
-LRmodel = LogisticRegression(C=1, penalty='l1', tol=0.001, max_iter=20000)
-#RFmodel = RandomForestClassifier(n_estimators=100)
-LRmodel.fit(scalaX, label)
-#RFmodel.fit(scalaX, label)
+#LRmodel = LogisticRegression(C=1, penalty='l1', tol=0.001, max_iter=20000)
+RFmodel = RandomForestClassifier(n_estimators=100)
+#LRmodel.fit(scalaX, label)
+RFmodel.fit(scalaX, label)
 print 'RF model finsh '
-y_predict = LRmodel.predict(scalaX)
+y_predict = RFmodel.predict(scalaX)
 accy =  accuracy_score(label, y_predict )
 print "Train set Accuracy " , accy
 
@@ -47,7 +47,7 @@ for key in UML_feature.keys():
 rfile.close()
 UML_pairset = set(UML_pair)
 testscaleX = preprocessing.scale(testX)
-testpredictY = LRmodel.predict(testscaleX)
+testpredictY = RFmodel.predict(testscaleX)
 
 for i in range(0,len(UML_pair)):
     UML_predictlabel[UML_pair[i]] = testpredictY[i]
