@@ -69,17 +69,24 @@ class featureExtract():
     def get_user_feature(self,dataset,startmonth,endmonth):
         user_merchant_datetime_all,user_location_all =  self.get_user_merchant_datetime(dataset)
         self.get_location_merchant_nums(dataset)
-        user_merchant_datetime = []
-        user_location = []
+        print "get location_merchant_nums done!"
+        user_merchant_datetime = {}
+        user_location = {}
         i = 0
         for month in range(startmonth,endmonth+1):
-            if endmonth-startmonth+1 > 3:
+            if endmonth-month+1 > 3:
                 continue
-            dataset_part = 'E:\IJCAI_competition\datasets\datasets\\trainfrom2015'+month+'01to2015'+month+'31'
+            if month < 10:
+                month = '0'+str(month)
+            dataset_part = 'E:\IJCAI_competition\datasets\datasets\\trainfrom2015'+str(month)+'01to2015'+str(month)+'31'
+            user_merchant_datetime[i] = {}
+            user_location[i] ={}
             user_merchant_datetime[i],user_location[i] = self.get_user_merchant_datetime(dataset_part)
             i += 1
-
+        count = 0
         for user in user_merchant_datetime_all:
+            print "count:",count
+            count += 1
             if not self.user_feature.has_key(user):
                 self.user_feature[user] = [0] * 55 #?
             merchant_dict_all = user_merchant_datetime_all[user]
@@ -126,26 +133,35 @@ class featureExtract():
             # 9. num of repeat visited merchants / num of all visited merchants
             self.user_feature[user][48] = float(repeat_mer_nums_all) / self.user_feature[user][8]
 
-            merchant_dict = []
+            merchant_dict = {}
             active_days = []
             repeat_mer_nums = []
             visited_mer_count = []
             visited_mer_nums = []
             visited_loc_nums = []
-            active = []
-            for i in range(len(user_merchant_datetime)):
-                merchant_dict[i] = user_merchant_datetime[i][user]
-                active[i] = []
-                for mer in merchant_dict[i]:
-                    # 0. the count of user visited all merchants
-                    visited_mer_count[i] += len(merchant_dict[i][mer])
-                    active[i].extend(merchant_dict[i][mer])
-                    if len(merchant_dict[i][mer]) > 1:
-                        repeat_mer_nums[i] += 1
 
-                visited_mer_nums[i] = len(merchant_dict[i])
-                active_days[i] = len(set(active[i]))
-                visited_loc_nums[i] = len(user_location[i][user])
+            for i in range(len(user_merchant_datetime)):
+                if user_merchant_datetime[i].has_key(user):
+                    merchant_dict[i] = user_merchant_datetime[i][user]
+                    active = []
+                    visited_mer_count.append(0)
+                    repeat_mer_nums.append(0)
+                    for mer in merchant_dict[i]:
+                        # 0. the count of user visited all merchants
+                        visited_mer_count[i] += len(merchant_dict[i][mer])
+                        active.extend(merchant_dict[i][mer])
+                        if len(merchant_dict[i][mer]) > 1:
+                            repeat_mer_nums[i] += 1
+
+                    visited_mer_nums.append(len(merchant_dict[i]))
+                    active_days.append(len(set(active)))
+                    visited_loc_nums.append(len(user_location[i][user]))
+                else:
+                    visited_mer_count.append(0)
+                    visited_mer_nums.append(0)
+                    active_days.append(0)
+                    visited_loc_nums.append(0)
+                    repeat_mer_nums.append(0)
 
             self.user_feature[user][1] = visited_mer_count[0]
             self.user_feature[user][2] = visited_mer_count[1]
@@ -180,13 +196,30 @@ class featureExtract():
             # increment num
             self.user_feature[user][31] = self.user_feature[user][28] - self.user_feature[user][27]
             self.user_feature[user][32] = self.user_feature[user][29] - self.user_feature[user][28]
-
-            self.user_feature[user][34] = float(self.user_feature[user][1])/self.user_feature[user][17]
-            self.user_feature[user][35] = float(self.user_feature[user][2])/self.user_feature[user][18]
-            self.user_feature[user][36] = float(self.user_feature[user][3])/self.user_feature[user][19]
-            self.user_feature[user][37] = float(self.user_feature[user][4])/self.user_feature[user][20]
-            self.user_feature[user][38] = float(self.user_feature[user][6])/self.user_feature[user][21]
-            self.user_feature[user][39] = float(self.user_feature[user][7])/self.user_feature[user][22]
+            if self.user_feature[user][17]:
+                self.user_feature[user][34] = float(self.user_feature[user][1])/self.user_feature[user][17]
+            else:
+                self.user_feature[user][34] = -1
+            if self.user_feature[user][18]:
+                self.user_feature[user][35] = float(self.user_feature[user][2])/self.user_feature[user][18]
+            else:
+                self.user_feature[user][35] = -1
+            if self.user_feature[user][19]:
+                self.user_feature[user][36] = float(self.user_feature[user][3])/self.user_feature[user][19]
+            else:
+                self.user_feature[user][36] = -1
+            if self.user_feature[user][20]:
+                self.user_feature[user][37] = float(self.user_feature[user][4])/self.user_feature[user][20]
+            else:
+                self.user_feature[user][37] = -1
+            if self.user_feature[user][21]:
+                self.user_feature[user][38] = float(self.user_feature[user][6])/self.user_feature[user][21]
+            else:
+                self.user_feature[user][38] = -1
+            if self.user_feature[user][22]:
+                self.user_feature[user][39] = float(self.user_feature[user][7])/self.user_feature[user][22]
+            else:
+                self.user_feature[user][39] = -1
 
             self.user_feature[user][41] = float(self.user_feature[user][9]) / mer_loc_nums_all
             self.user_feature[user][42] = float(self.user_feature[user][10]) / mer_loc_nums_all
@@ -196,15 +229,40 @@ class featureExtract():
             self.user_feature[user][46] = float(self.user_feature[user][14]) / mer_loc_nums_all
             self.user_feature[user][47] = float(self.user_feature[user][15]) / mer_loc_nums_all
 
-            self.user_feature[user][49] = float(repeat_mer_nums[0]) / self.user_feature[user][9]
-            self.user_feature[user][50] = float(repeat_mer_nums[1]) / self.user_feature[user][10]
-            self.user_feature[user][51] = float(repeat_mer_nums[2]) / self.user_feature[user][11]
-            self.user_feature[user][52] = float(repeat_mer_nums[0]+repeat_mer_nums[1]+repeat_mer_nums[2])/ 3 / self.user_feature[user][12]
-            self.user_feature[user][53] = float(repeat_mer_nums[1] - repeat_mer_nums[0]) / self.user_feature[user][14]
-            self.user_feature[user][54] = float(repeat_mer_nums[2] - repeat_mer_nums[1]) / self.user_feature[user][15]
+            if self.user_feature[user][9]:
+                self.user_feature[user][49] = float(repeat_mer_nums[0]) / self.user_feature[user][9]
+            else:
+                self.user_feature[user][49] = -1
+            if self.user_feature[user][10]:
+                self.user_feature[user][50] = float(repeat_mer_nums[1]) / self.user_feature[user][10]
+            else:
+                self.user_feature[user][50] = -1
+            if self.user_feature[user][11]:
+                self.user_feature[user][51] = float(repeat_mer_nums[2]) / self.user_feature[user][11]
+            else:
+                self.user_feature[user][51] = -1
+            if self.user_feature[user][12]:
+                self.user_feature[user][52] = float(repeat_mer_nums[0]+repeat_mer_nums[1]+repeat_mer_nums[2])/ 3 / self.user_feature[user][12]
+            else:
+                self.user_feature[user][52] = -1
+            if self.user_feature[user][14]:
+                self.user_feature[user][53] = float(repeat_mer_nums[1] - repeat_mer_nums[0]) / self.user_feature[user][14]
+            else:
+                self.user_feature[user][53] = -1
+            if self.user_feature[user][15]:
+                self.user_feature[user][54] = float(repeat_mer_nums[2] - repeat_mer_nums[1]) / self.user_feature[user][15]
+            else:
+                self.user_feature[user][54] = -1
 
 
 
 if __name__ == '__main__':
-
-    pass
+    ft = featureExtract()
+    file = 'E:\IJCAI_competition\datasets\datasets\ijcai2016_koubei_train'
+    ft.get_user_feature(file,7,11)
+    outfile = 'E:\IJCAI_competition\datasets\datasets\user_feature_from7to11.pkl'
+    f = open(outfile,'wb')
+    pickle.dump(ft.user_feature,f)
+    key = ft.user_feature.keys()
+    print ft.user_feature[key[0]]
+    #pass
