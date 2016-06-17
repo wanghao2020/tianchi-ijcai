@@ -1,38 +1,121 @@
 from GetFeature import feature
 import pickle
+import csv
+#
+# file = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_train'
+# wfile = open('/home/wanghao/location_merchant_precentage', 'wb')
+# writer = csv.writer(wfile)
+#
+# location_merchant_people = {}
+# with open(file, 'rb') as f :
+#     for line in f:
+#         line = line.strip('\r\n')
+#         user,merchant,location,time = line.split(',')
+#         if not location_merchant_people.has_key(location):
+#             location_merchant_people[location] = {}
+#         if not location_merchant_people[location].has_key(merchant):
+#             location_merchant_people[location][merchant] = []
+#         if user not in location_merchant_people[location][merchant]:
+#             location_merchant_people[location][merchant].append(user)
+#
+# location_merchant_percentage = {}
+# for loc in location_merchant_people:
+#     location_merchant_percentage[loc] = {}
+#     locationpeople = set()
+#     for mer in location_merchant_people[loc]:
+#         for user in location_merchant_people[loc][mer]:
+#             locationpeople.add(user)
+#
+#     for mer in location_merchant_people[loc]:
+#         location_merchant_percentage[loc][mer] = len(location_merchant_people[loc][mer]) / float(len(locationpeople))
+#
+# for loc in location_merchant_percentage:
+#     result = []
+#     result.append(loc)
+#
+#     for mer in location_merchant_percentage[loc]:
+#         result.append((mer,location_merchant_percentage[loc][mer]))
+#     writer.writerow(result)
+#
+#
+#
+# wfile.close()
+#-------------
+# taobaofile = '/home/wanghao/Document/tianchi/dataset/TaoBaoClean'
+# merchantfile = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_train'
+# userset = set()
+# with open(file,'rb') as f :
+#     for line in f :
+#         user = line.strip('\r\n').split(',')[0]
+#         userset.add(user)
+#
+# print 'length',len(userset)
+#--------------
+taobaofile = '/home/wanghao/Document/tianchi/dataset/TaoBaoClean'
+merchantfile = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_train'
+wfile = open('/home/wanghao/merchant_user','wb')
+merchant_users = {}
+with open(merchantfile, 'rb') as f :
+    for line in f :
+        line = line.strip('\r\n')
+        user,merchant,location,time = line.split(',')
+        if not merchant_users.has_key(merchant):
+            merchant_users[merchant] = []
+        if user not in merchant_users[merchant]:
+            merchant_users[merchant].append(user)
+writer = csv.writer(wfile)
+for mer in merchant_users:
+    result = []
+    result.append(mer)
+    result.append(':')
+    for user in merchant_users[mer]:
+        result.append(user)
+    writer.writerow(result)
 
-if __name__ == '__main__':
+wfile.close()
+merchantusers  = merchant_users['275']
+user_item = {}
+user_seller = {}
+user_category = {}
+with open(taobaofile, 'rb') as f :
+    for line in f :
+        line = line.strip('\r\n')
+        user,seller,item,category,onaction,time = line.split(',')
+        if int(onaction) == 1:
 
-    feature_path = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_train'
+            if not user_category.has_key(user):
+                user_category[user]= []
+            if not user_item.has_key(user):
+                user_item[user] = []
+            if not user_seller.has_key(user):
+                user_seller[user] = []
+            if category not in user_category[user]:
+                user_category[user].append(category)
+            if item not in user_item[user]:
+                user_item[user].append(item)
+            if seller not in user_seller[user]:
+                user_seller[user].append(seller)
 
-    ft = feature()
-    ft.get_location_merchant_feature(feature_path)
-    ft.get_user_feature(feature_path)
-    ft.get_user_merchant_feature(feature_path)
+print '*'*50
+print 'item similarity'
+for user in merchantusers:
+    if not user_item.has_key(user):
+        print user, '      '
+    else:
+        print user, '  ', user_item[user]
 
-    sample = []
-    UML_pair = []
-    count = 1
+print '*'*50
+print 'category similarity'
+for user in merchantusers:
+    if not user_category.has_key(user):
+        print user, '      '
+    else:
+        print user,'  ' ,user_category[user]
 
-    featureList = {}
-    print "-" * 50
-    print "generate the feature vector ..."
-    with open(feature_path) as f:
-        for line in f:
-            print count
-            count += 1
-            user, merchant, location, time = line.split(',')
-            if (user, merchant, location) not in UML_pair:
-                UML_pair.append((user, merchant, location))
-                sam = []
-                sam.extend(ft.merchant_feature[(location, merchant)])
-                sam.extend(ft.user_feature[user])
-                sam.extend(ft.UM_feature[(user, merchant, location)])
-
-                if not featureList.has_key((user,merchant,location)):
-                    featureList[(user, merchant, location)] = sam
-
-    print "get feature done!"
-    outfile = open('/home/wanghao/Document/tianchi/testset/featureall.pkl', 'wb')
-    pickle.dump(featureList, outfile)
-    outfile.close()
+print '*' * 50
+print 'seller similarity'
+for user in merchantusers:
+    if not user_seller.has_key(user):
+        print user, '    '
+    else:
+        print user, '  ',user_seller[user]

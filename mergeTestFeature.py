@@ -1,32 +1,35 @@
 from feature_extract import featureExtract
 import pickle
 import sys
-
+import numpy as np
 # ********************************************
 # merge the train data and label by the koubei train file
-class mergetraindata():
+class mergetestfeature():
 
-    train_feature = []
-    train_UMLpair = []
-    train_label = []
 
-    def getTomergetraindata(self):
+    #test_feature = []
+    #test_UMLpair = []
+    test_feature = np.zeros((21320673,338))
+    # test_feature = np.zeros((2132067, 146))
+    test_UMLpair = []
+
+    def getTomergetestdata(self):
 
         ft = featureExtract()
-        ft.get_user_feature('/home/wanghao/Document/tianchi/dataset/trainfrom7to10', 7, 10)
-        ft.MergeMerchantFeature(7, 10)
-        ft.mergeUserMerchantFeature(7, 10)
-        ft.get_user_taobao_feature(7,10)
+        ft.get_user_feature('/home/wanghao/Document/tianchi/dataset/trainfrom7to11', 7, 11)
+        ft.MergeMerchantFeature(7, 11)
+        ft.mergeUserMerchantFeature(7, 11)
+        ft.get_user_taobao_feature(7,11)
 
         location_merchant = {}
 
-        train_path = '/home/wanghao/Document/tianchi/dataset/train11'
+        test_path = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_test'
         merchant_path = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_merchant_info'
 
         UML_pair_set = set()
         UL_set = set()
         default_use_feature = [-1] * 55
-        default_merchant_feature = [-1] * 67
+        default_merchant_feature = [-1] * 53
         default_userandmerchant_feature = [-1] * 38
         default_user_taobao_feature = [-1] * 192
 
@@ -42,24 +45,26 @@ class mergetraindata():
                         location_merchant[loc] = []
                     location_merchant[loc].append(merchant)
 
-        print "merge train data feature......"
+        print "\r\nmerge test data feature......"
 
-        count = 1
-
-        with open(train_path) as f:
+        count = 0
+        index = 0
+        with open(test_path) as f:
             for line in f:
-                sys.stdout.write('\rtrain feature count %d' % count)
+                sys.stdout.write('\rtest feature count %d' % count)
                 sys.stdout.flush()
                 count += 1
 
                 line = line.strip('\r\n')
-                user, merchant, location, time = line.split(',')
+                user, location = line.split(',')
 
                 if (user, location) not in UL_set:
                     UL_set.add((user, location))
                     for mer in location_merchant[location]:
                         feature_list = []
                         if (user, mer, location) not in UML_pair_set:
+
+                            self.test_UMLpair.append((user, mer, location))
                             UML_pair_set.add((user, mer, location))
 
                             if ft.user_feature.has_key(user):
@@ -77,52 +82,36 @@ class mergetraindata():
                             else:
                                 feature_list.extend(default_merchant_feature)
 
-                            if ft.userandmerchant_feature.has_key((user, mer)):
-                                feature_list.extend(ft.userandmerchant_feature[(user, mer)])
+                            if ft.userandmerchant_feature.has_key((user, mer, location)):
+                                feature_list.extend(ft.userandmerchant_feature[(user, mer, location)])
                             else:
                                 feature_list.extend(default_userandmerchant_feature)
 
-                            self.train_UMLpair.append((user, mer, location))
-                            self.train_feature.append(feature_list)
+                            featureArray = np.asarray(feature_list)
+                            self.test_feature[index,:] = featureArray
+                            index += 1
 
-        print "\r\nUML_pair num :", len(self.train_UMLpair)
-
-        labelpath = '/home/wanghao/Document/tianchi/dataset/train11'
-        print "get (user,merchant,location) pairs......."
-        label_set = set()
-        count = 1
-        with open(labelpath) as f:
-            for line in f:
-                sys.stdout.write("\rfind label count %d" % count)
-                sys.stdout.flush()
-                count += 1
-                line = line.strip('\r\n')
-                user, merchant, location, time = line.split(',')
-                if (user, merchant, location) not in label_set:
-                    label_set.add((user, merchant, location))
-
-        positive_num = 0
-        negative_num = 0
-        print "\r\nset label..."
-        count = 1
-        for pair in self.train_UMLpair:
-            sys.stdout.write("\rlabel count : %d" % count)
-            sys.stdout.flush()
-            count += 1
-            if pair in label_set:
-                self.train_label.append(1)
-                positive_num += 1
-            else:
-                self.train_label.append(0)
-                negative_num += 1
-
-        print "\r\npositive label num :", positive_num
-        print "negative label num :", negative_num
-        print 'all nums', positive_num + negative_num
-
+        print "\r\nUML_pair num :", len(self.test_UMLpair)
 
 if __name__ == '__main__':
+    # test = mergetestfeature()
+    # test.getTomergetraindata()
+    # feature = test.test_feature
+    # pair = test.test_UMLpair
 
-    data = mergetraindata()
-    data.getTomergetraindata()
+    # test = mergetestfeature()
+    # print "test feature size : ", test.test_feature.shape
+    # print test.test_feature[0],len(test.test_feature[0])
 
+    test = mergetestfeature()
+    test.getTomergetestdata()
+    print "test feature..."
+    print test.test_feature.shape
+    print "write the test feature to file"
+    np.save('./testfeature.npy',test.test_feature)
+    print 'write the test pair to file'
+    import csv
+    wfile = open('./testpair','wb')
+    writer = csv.writer(wfile)
+    writer.writerows(test.test_UMLpair)
+    wfile.close()

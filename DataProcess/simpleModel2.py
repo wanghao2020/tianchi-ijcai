@@ -91,36 +91,10 @@ class ItemCF:
         resultMerchant = []
         locationMerchantList = self.Location_merchant_nums[location].keys()
 
-        if not self.UserMerchantRateMatrix.has_key(user):
-            # the train file does not include the user
-            if len(self.Location_merchant_nums[location]) < 3 :
-                for m in self.Location_merchant_nums[location]:
-                    #if self.Location_merchant_nums[location][m] > 0:
-                    resultMerchant.append(m)
-                return resultMerchant
-            else:
-                sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],reverse=True)[0:3]
-                for m in sortedMerchant:
-                    resultMerchant.append(m[0])
-                return resultMerchant
-        else:
-
-            if self.user_location_merchant[user].has_key(location):
-                for m in self.user_location_merchant[user][location]:
-                    resultMerchant.append(m)
-                return resultMerchant
-            else:
-                if len(self.Location_merchant_nums[location]) < 3:
-                    for m in self.Location_merchant_nums[location]:
-                        # if self.Location_merchant_nums[location][m] > 0:
-                        resultMerchant.append(m)
-                    return resultMerchant
-                else:
-                    sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],
-                                            reverse=True)[0:3]
-                    for m in sortedMerchant:
-                        resultMerchant.append(m[0])
-                    return resultMerchant
+        sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],reverse=True)[0:3]
+        for m in sortedMerchant:
+            resultMerchant.append(m[0])
+        return resultMerchant
 
 
 if __name__ == '__main__':

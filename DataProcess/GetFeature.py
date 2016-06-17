@@ -368,7 +368,7 @@ if __name__ == '__main__':
     ft.get_user_feature(feature_path)
     ft.get_user_merchant_feature(feature_path)
     ft.get_label_list(label_path)
-    
+
     sample = []
     UML_pair = []
     count = 1

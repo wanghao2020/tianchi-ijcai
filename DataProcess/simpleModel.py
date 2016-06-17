@@ -1,3 +1,4 @@
+#coding=utf-8
 import math
 import csv
 
@@ -11,6 +12,7 @@ class ItemCF:
     Location_merchant_nums = {}
     trainuser = 0
     recommendationCount = 0
+    location_merchant_users11 = {}
 
     # load the user merchant rate matrix
     def readData(self,file):
@@ -66,22 +68,37 @@ class ItemCF:
 
         return self.Location_merchant_nums
 
+    # 统计在11月份最热门的商家
+    def get11location_merchant_users(self):
 
+        file = '/home/wanghao/Document/tianchi/dataset/train11'
+        with open(file, 'rb') as f :
+            for line in f :
+                line = line.strip('\r\n')
+                user,merchant,location,time = line.split(',')
+                if not self.location_merchant_users11.has_key(location):
+                    self.location_merchant_users11[location] = {}
+                if not self.location_merchant_users11[location].has_key(merchant):
+                    self.location_merchant_users11[location][merchant] = 0
+
+                self.location_merchant_users11[location][merchant] += 1
+
+    # 用户在这个地点的推荐
     def userLocationRecommenation(self,user,location):
 
 
         resultMerchant = []
-        locationMerchantList = self.Location_merchant_nums[location].keys()
 
         if not self.UserMerchantRateMatrix.has_key(user):
             # the train file does not include the user
-            if len(self.Location_merchant_nums[location]) < 4 :
-                for m in self.Location_merchant_nums[location]:
-                    if self.Location_merchant_nums[location][m] > 0:
-                        resultMerchant.append(m)
+            if not self.location_merchant_users11.has_key(location):
+                sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],
+                                        reverse=True)[0:3]
+                for m in sortedMerchant:
+                    resultMerchant.append(m[0])
                 return resultMerchant
             else:
-                sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],reverse=True)[0:4]
+                sortedMerchant = sorted(self.location_merchant_users11[location].iteritems(), key=lambda d: d[1],reverse=True)[0:3]
                 for m in sortedMerchant:
                     resultMerchant.append(m[0])
                 return resultMerchant
@@ -94,13 +111,15 @@ class ItemCF:
 
             # top 4
             if len(resultMerchant) == 0:
-                if len(self.Location_merchant_nums[location]) < 4:
-                    for m in self.Location_merchant_nums[location]:
-                        if self.Location_merchant_nums[location][m] > 0:
-                            resultMerchant.append(m)
+                if not self.location_merchant_users11.has_key(location):
+                    sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],
+                                            reverse=True)[0:3]
+                    for m in sortedMerchant:
+                        resultMerchant.append(m[0])
                     return resultMerchant
                 else:
-                    sortedMerchant = sorted(self.Location_merchant_nums[location].iteritems(), key=lambda d: d[1],reverse=True)[0:4]
+                    sortedMerchant = sorted(self.location_merchant_users11[location].iteritems(), key=lambda d: d[1],
+                                            reverse=True)[0:3]
                     for m in sortedMerchant:
                         resultMerchant.append(m[0])
                     return resultMerchant
@@ -111,15 +130,16 @@ class ItemCF:
 
 if __name__ == '__main__':
 
-    trainfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_koubei_train'
-    testfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_koubei_test'
-    merchantfile = '/home/wanghao/Document/tianchi/data_sets/ijcai2016_merchant_info'
+    trainfile = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_train'
+    testfile = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_koubei_test'
+    merchantfile = '/home/wanghao/Document/tianchi/tianchi_dataset/ijcai2016_merchant_info'
 
-    resultfile = '/home/wanghao/Document/tianchi/result/visitedresult.csv'
+    resultfile = '/home/wanghao/Document/tianchi/result/visitedresult_11month.csv'
     itemCf = ItemCF()
+    location_merchant_num = itemCf.getLocation_merchant_nums(trainfile,merchantfile)
     Usermerchant = itemCf.readData(trainfile)
 
-    location_merchant_nums = itemCf.getLocation_merchant_nums(trainfile, merchantfile)
+    itemCf.get11location_merchant_users()
 
     allResult = []
     count = 0
